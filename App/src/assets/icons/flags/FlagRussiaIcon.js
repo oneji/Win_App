@@ -3,7 +3,7 @@ import Svg, { Defs, ClipPath, Circle, G, Path } from "react-native-svg"
 
 function FlagRussiaIcon(props) {
   return (
-    <Svg width={18} height={18} viewBox="0 0 18 18" {...props}>
+    <Svg width={20} height={20} viewBox="0 0 18 18" {...props}>
       <Defs>
         <ClipPath id="prefix__a">
           <Circle

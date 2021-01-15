@@ -32,6 +32,7 @@ export const Styles = StyleSheet.create({
     marginBottom: 24.5,
     marginTop: 30,
     backgroundColor: Colors.white,
+    alignItems: 'center'
   },
   input: {
     marginLeft: 11.5,

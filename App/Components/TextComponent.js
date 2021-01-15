@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {Text} from 'react-native';
 import {Colors} from '../src/Themes';
 
@@ -23,8 +23,10 @@ export const TextComponent = ({
           fontSize: size || 14,
           lineHeight: lineHeight || null,
           letterSpacing: letterSpacing,
-          ...style,
-        }}>
+          ...style
+        }}
+        onPress={onPress}
+      >
         {children}
       </Text>
   );

@@ -1,122 +1,115 @@
-import React, {useState, createRef, useEffect} from 'react';
-import {View, KeyboardAvoidingView, Dimensions} from 'react-native';
-import {TextComponent} from '../../Components/TextComponent';
-import {Colors} from '../../src/Themes';
-import {connect} from 'react-redux';
-import {Styles} from './Styles/SendCodeScreenStyle';
+import React, { useState, createRef } from 'react';
+import { View, KeyboardAvoidingView, Dimensions } from 'react-native';
+import { TextComponent } from '../../Components/TextComponent';
+import { Colors } from '../../src/Themes';
+import { Styles } from './Styles/SendCodeScreenStyle';
 import SmoothPinCodeInput from 'react-native-smooth-pincode-input';
-import {UserSendCode, ClearError} from '../../Redux/actions/AuthActions';
-import IconError from '../../src/assets/icons/IconError';
+import axios from '../../src/axios'
 
 const pinInput = createRef();
 const timerDelay = 60;
 
 const SendCodeScreen = (props) => {
-  const {route} = props;
-  const {authPhone, error} = props;
-  const [code, setCode] = useState();
-  const [timer, setTimer] = useState(timerDelay);
+    const { route } = props;
+    const [code, setCode] = useState();
+    const [timer, setTimer] = useState(timerDelay);
 
-  const _checkCode = () => {
-    props.dispatch(UserSendCode(authPhone, code));
-  };
-
-  const _setCode = (e) => {
-    if (error) {
-      props.dispatch(ClearError());
+    const handleCodeChange = e => {
+        setCode(e);
     }
-    setCode(e);
-  };
 
-  const startTimer = () => {
-    var interval = setInterval(() => {
-      setTimer((p) => {
-        if (p === 0) {
-          clearInterval(interval);
-          setTimer(timerDelay);
-        } else {
-          return p - 1;
-        }
-      });
-    }, 1000);
-  };
-
-  useEffect(() => {
-    if (route.params.initScreen) {
-      props.navigation.navigate(route.params.initScreen);
-    } else {
-      props.navigation.navigate('CompleteLoginScreen');
+    const handleCheckCode = e => {
+        axios.get(`auth/verify/${e}`)
+            .then(response => {
+                alert('SUCCESS')
+            })
+            .catch(err => console.error(err));
     }
-  }, [props.codeSend]);
-  console.log(props);
-  return (
-    <KeyboardAvoidingView
-      style={[Styles.flex, Styles.container]}
-      behavior="padding">
-      <View>
-        <TextComponent
-          font={'Oswald'}
-          color={Colors.black}
-          size={25}
-          weight="Bold"
-          lineHeight={50}
-          style={Styles.title}>
-          Введите код из смс
-        </TextComponent>
-        <TextComponent color={Colors.grey} style={Styles.subtitle}>
-          Код был отправлен на {authPhone}
-        </TextComponent>
-      </View>
-      <View style={{marginTop: 52}}>
-        <SmoothPinCodeInput
-          autoFocus={true}
-          ref={pinInput}
-          value={code}
-          onTextChange={_setCode}
-          onFulfill={_checkCode}
-          cellStyle={[Styles.cell, error && Styles.borderError]}
-          cellStyleFocused={Styles.cellFocused}
-          cellSpacing={22}
-          cellSize={Dimensions.get('screen').width * 0.16}
-        />
-        {error && (
-          <View style={Styles.error}>
-            <IconError />
+
+    const resendVerification = e => {
+        if(timer === timerDelay) {
+            axios.get(`auth/resendVerificationCode?phone_number=${1111111111}`)
+                .then(response => {
+                    alert(`Ваш код: ${response.data.verification_code}`)
+                    startTimer();
+                })
+                .catch(err => console.error(err));
+
+            
+        } 
+    }
+
+    const startTimer = () => {
+        var interval = setInterval(() => {
+            setTimer((p) => {
+                if (p === 0) {
+                    clearInterval(interval);
+                    setTimer(timerDelay);
+                } else {
+                    return p - 1;
+                }
+            });
+        }, 1000);
+    }
+
+    console.log(props);
+
+    return (
+        <KeyboardAvoidingView
+            style={[Styles.flex, Styles.container]}
+            behavior="padding"
+        >
+            <View>
+                <TextComponent
+                    font={'Oswald'}
+                    color={Colors.black}
+                    size={25}
+                    weight="Bold"
+                    lineHeight={50}
+                    style={Styles.title}
+                >
+                    Введите код из смс
+                </TextComponent>
+
+                <TextComponent color={Colors.grey} style={Styles.subtitle}>
+                    Код был отправлен на Ваш номер
+                </TextComponent>
+            </View>
+
+            <View style={{marginTop: 52}}>
+                <SmoothPinCodeInput
+                    autoFocus={true}
+                    ref={pinInput}
+                    value={code}
+                    onTextChange={handleCodeChange}
+                    onFulfill={handleCheckCode}
+                    cellStyle={[Styles.cell]}
+                    cellStyleFocused={Styles.cellFocused}
+                    cellSpacing={22}
+                    cellSize={Dimensions.get('screen').width * 0.16}
+                />
+            </View>
+
+        <View style={Styles.repeat}>
             <TextComponent
-              size={12}
-              lineHeight={19}
-              color={Colors.red}
-              style={Styles.errorText}>
-              {error}
+                color={timer !== timerDelay ? Colors.grey : '#286BC8'}
+                size={14}
+                weight="Bold"
+                lineHeight={19}
+                style={Styles.repeatText}
+                onPress={timer !== timerDelay ? null : resendVerification}>
+                Отправить код заново
             </TextComponent>
-          </View>
-        )}
-      </View>
-      <View style={Styles.repeat}>
-        <TextComponent
-          color={timer !== timerDelay ? Colors.grey : '#286BC8'}
-          size={14}
-          weight="Bold"
-          lineHeight={19}
-          style={Styles.repeatText}
-          onPress={timer !== timerDelay ? null : startTimer}>
-          Отправить код заново
-        </TextComponent>
-        {timer !== timerDelay && (
-          <TextComponent color={Colors.grey} lineHeight={19} size={14}>
-            {timer} сек
-          </TextComponent>
-        )}
-      </View>
-      <View />
-    </KeyboardAvoidingView>
-  );
+                {timer !== timerDelay && (
+                    <TextComponent color={Colors.grey} lineHeight={19} size={14}>
+                        {timer} сек
+                    </TextComponent>
+                )}
+        </View>
+        
+            <View />
+        </KeyboardAvoidingView>
+    );
 };
 
-const mapStateToProps = (state) => ({
-  authPhone: state.auth.userAuthPhone,
-  error: state.auth.error,
-  codeSend: state.auth.isCodeCorrect,
-});
-
-export default connect(mapStateToProps)(SendCodeScreen);
+export default SendCodeScreen;
